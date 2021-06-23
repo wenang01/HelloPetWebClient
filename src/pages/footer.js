@@ -8,7 +8,7 @@ function footer() {
                 <div className="row" style={{ border: '#0664A8' }}>
                     <div className="col-6">
                         <div style={{ marginTop: '5px' }}>
-                            <img src={"assets/images/hellopetslogo.png"} alt="" style={{ width: '100px', height: '100px' }} />
+                            <img src="/assets/images/hellopetslogo.png" alt="" style={{ width: '100px', height: '100px' }} />
                         </div>
                         <p className="pt-4 pb-2">
                             Memberi pelayanan yang memuaskan untuk
@@ -18,9 +18,9 @@ function footer() {
                     <div className="col-6">
                         <h3>Company</h3>
                         <p><Link to="/">Home</Link></p>
-                        <p><Link to="/">About Us</Link></p>
-                        <p><Link to="/">Services</Link></p>
-                        <p><Link to="/">Contact Us</Link></p>
+                        <p><Link to="#">About Us</Link></p>
+                        <p><Link to="#">Services</Link></p>
+                        <p><Link to="#">Contact Us</Link></p>
                     </div>
                 </div>
             </div>

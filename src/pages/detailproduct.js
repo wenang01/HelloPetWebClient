@@ -3,21 +3,14 @@ import { Link, withRouter } from "react-router-dom"
 import Product from "../services/products.service"
 import Categories from "../services/category.service"
 
-// export default function detailproduct() {
-//     const { id } = useParams()
-//     return (
-//         <div>
-
-//         </div>
-//     )
-// }
-
 export default class Detailproduct extends Component {
 
     constructor(props) {
         super(props);
         // this.getDataProducts = this.getDataProducts.bind(this)
-        // this.retrieveDataCategories = this.retrieveDataCategories.bind(this)
+        // this.getDataCategories = this.retrieveDataCategories.bind(this)
+        // this.getGallery = this.getGallery.bind(this);
+
 
         this.state = {
             currentProduct: {
@@ -28,8 +21,10 @@ export default class Detailproduct extends Component {
                 productImage: "",
                 description: "",
                 categories: {},
+                galleries: []
             },
             listCategory: [],
+            listGalleries: [],
             message: "",
         };
     }
@@ -58,6 +53,7 @@ export default class Detailproduct extends Component {
             .then((response) => {
                 this.setState({
                     currentProduct: response.data,
+                    listGalleries: response.data.productGalleries,
                 });
                 console.log(response.data);
             })
@@ -66,8 +62,9 @@ export default class Detailproduct extends Component {
             });
     }
 
+
     render() {
-        const { currentProduct } = this.state
+        const { currentProduct, listGalleries } = this.state
         return (
             <div className="page-content page-details">
                 <section
@@ -94,28 +91,36 @@ export default class Detailproduct extends Component {
                     <div className="container">
                         <div className="row">
                             <div className="col-lg-8" data-aos="zoom-in">
-                                {/* <transition name="slide-fade" mode="out-in">
-                                        <img src=""
-                                            className="w-100 main-image"
-                                            alt=""
-                                        />
-                                    </transition> */}
+                                <div name="slide-fade" mode="out-in">
+                                    <img key="#" src={"http://localhost:3030/products/photo/" + currentProduct.productImage}
+                                        className="w-100 main-image"
+                                        alt=""
+                                    />
+                                </div>
                             </div>
                             <div className="col-lg-2">
                                 <div className="row">
                                     <div
                                         className="col-3 col-lg-12 mt-2 mt-lg-0"
-                                        v-for="(photo, index) in photos"
-                                        data-aos="zoom-in"
-                                        data-aos-delay="100"
+                                    // v-for="(photo, index) in photos"
+                                    // key="#"
+                                    // data-aos="zoom-in"
+                                    // data-aos-delay="100"
                                     >
-                                        <a href="#">
-                                            <img
-                                                src="photo.url"
+                                        {listGalleries && listGalleries.map((gl) => {
+                                            <a href={"http://localhost:3030/products/photo/" + listGalleries.image}>
+                                                <img src={"http://localhost:3030/products/photo/" + listGalleries.image}
+                                                    className="w-100 thumbnail-image"
+                                                    alt=""
+                                                />
+                                            </a>
+                                        })}
+                                        {/* <a href="#">
+                                            <img src="#"
                                                 className="w-100 thumbnail-image"
                                                 alt=""
                                             />
-                                        </a>
+                                        </a> */}
                                     </div>
                                 </div>
                             </div>
@@ -128,9 +133,9 @@ export default class Detailproduct extends Component {
                             <div className="row">
                                 <div className="col-lg-8">
                                     <h1>{currentProduct.productName}</h1>
-                                    {/* <div className="owner">{currentProduct.categories}</div> */}
-                                    <div className="price">{currentProduct.price}</div>
-                                    <div className="price">{currentProduct.stok}</div>
+                                    <div className="owner">{currentProduct.categories.categoryName}</div>
+                                    <div className="owner">Stok : {currentProduct.stok}</div>
+                                    <div className="price">Price Rp. {currentProduct.price}</div>
                                 </div>
                                 <div className="col-lg-2" data-aos="zoom-in">
                                     <a
@@ -150,60 +155,6 @@ export default class Detailproduct extends Component {
                             </div>
                         </div>
                     </section>
-                    {/* <section className="store-review">
-                        <div className="container">
-                            <div className="row">
-                                <div className="col-12 col-lg-8 mt-3 mb-3">
-                                    <h5>Customer Review (3)</h5>
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-12 col-lg-8">
-                                    <ul className="list-unstyled">
-                                        <li className="media">
-                                            <img
-                                                src="assets/images/icon-testimonial-1.png"
-                                                className="mr-3 rounded-circle"
-                                                alt=""
-                                            />
-                                            <div className="media-body">
-                                                <h5 className="mt-2 mb-1">Hazza Risky</h5>
-                                                I thought it was not good for living room. I really happy
-                                                to decided buy this product last week now feels like
-                                                homey.
-                                            </div>
-                                        </li>
-                                        <li className="media my-4">
-                                            <img
-                                                src="assets/images/icon-testimonial-2.png"
-                                                className="mr-3 rounded-circle"
-                                                alt=""
-                                            />
-                                            <div className="media-body">
-                                                <h5 className="mt-2 mb-1">Anna Sukkirata</h5>
-                                                Color is great with the minimalist concept. Even I thought
-                                                it was made by Cactus industry. I do really satisfied with
-                                                this.
-                                            </div>
-                                        </li>
-                                        <li className="media">
-                                            <img
-                                                src="assets/images/icon-testimonial-3.png"
-                                                className="mr-3 rounded-circle"
-                                                alt=""
-                                            />
-                                            <div className="media-body">
-                                                <h5 className="mt-2 mb-1">Dakimu Wangi</h5>
-                                                When I saw at first, it was really awesome to have with.
-                                                Just let me know if there is another upcoming product like
-                                                this.
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </section> */}
                 </div>
             </div>
         )
