@@ -1,7 +1,51 @@
 import React, { Component } from 'react'
 import { Link } from "react-router-dom"
+import Produts from "../services/products.service"
+import AuthService from "../services/auth.service"
+import Carts from "../services/cart.service"
+
 
 export class Cart extends Component {
+
+    constructor(props) {
+        super(props)
+        this.state = {
+            userid: undefined,
+            productid: undefined,
+            qty: null,
+            currentCart: {
+                id: null,
+                userid: null,
+                productid: null,
+                qty: null
+            },
+            message: [],
+            user: undefined,
+            product: undefined
+        }
+    }
+
+    componentDidMount() {
+
+        const user = AuthService.getCurrentUser();
+        if (user) {
+            this.setState({
+                currentUser: user.id,
+            });
+            console.log(user.id)
+        }
+    }
+
+    getCarts(userId) {
+        Carts.getAll(userId).then((response) => {
+            this.setState({
+                currentCart: response.data
+            })
+        }).catch((e) => {
+            console.log(e)
+        })
+    }
+
     render() {
         return (
             <div class="page-content page-cart">

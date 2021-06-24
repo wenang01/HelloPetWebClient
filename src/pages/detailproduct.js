@@ -2,6 +2,8 @@ import React, { Component } from 'react'
 import { Link, withRouter } from "react-router-dom"
 import Product from "../services/products.service"
 import Categories from "../services/category.service"
+import AuthService from "../services/auth.service"
+import Cart from "../services/cart.service"
 
 export default class Detailproduct extends Component {
 
@@ -10,9 +12,10 @@ export default class Detailproduct extends Component {
         // this.getDataProducts = this.getDataProducts.bind(this)
         // this.getDataCategories = this.retrieveDataCategories.bind(this)
         // this.getGallery = this.getGallery.bind(this);
-
+        this.addToCart = this.addToCart.bind(this)
 
         this.state = {
+            currentUser: undefined,
             currentProduct: {
                 id: null,
                 productName: "",
@@ -26,12 +29,22 @@ export default class Detailproduct extends Component {
             listCategory: [],
             listGalleries: [],
             message: "",
+            qty: 0,
         };
     }
 
     componentDidMount() {
         this.getProduct(this.props.match.params.id);
         this.getCategory();
+        // this.addToCart();
+
+        const user = AuthService.getCurrentUser();
+        if (user) {
+            this.setState({
+                currentUser: user.id,
+            });
+            console.log(user.id)
+        }
     }
 
     getCategory() {
@@ -62,9 +75,30 @@ export default class Detailproduct extends Component {
             });
     }
 
+    addToCart() {
+        var data = {
+            user: {
+                id: this.state.currentUser
+            },
+            product: {
+                id: this.state.currentProduct.id
+            },
+            qty: this.state.qty + 1
+        }
+        Cart.add(data).then((response) => {
+            alert("Product Added to cart !")
+            this.props.history.push("/carts/")
+            console.log(response.data)
+            this.setState({
+                currentUser: response.data.user.id,
+                currentProduct: { id: response.data.product.id },
+                qty: response.data.qty,
+            })
+        })
+    }
 
     render() {
-        const { currentProduct, listGalleries } = this.state
+        const { currentProduct, listGalleries, currentUser } = this.state
         return (
             <div className="page-content page-details">
                 <section
@@ -108,8 +142,8 @@ export default class Detailproduct extends Component {
                                     // data-aos-delay="100"
                                     >
                                         {listGalleries && listGalleries.map((gl) => {
-                                            <a href={"http://localhost:3030/products/photo/" + listGalleries.image}>
-                                                <img src={"http://localhost:3030/products/photo/" + listGalleries.image}
+                                            <a href={"http://localhost:3030/products/photo/" + gl.image}>
+                                                <img src={"http://localhost:3030/products/photo/" + gl.image}
                                                     className="w-100 thumbnail-image"
                                                     alt=""
                                                 />
@@ -138,10 +172,11 @@ export default class Detailproduct extends Component {
                                     <div className="price">Price Rp. {currentProduct.price}</div>
                                 </div>
                                 <div className="col-lg-2" data-aos="zoom-in">
-                                    <a
+                                    <Link
                                         className="btn btn-success nav-link px-4 text-white btn-block mb-3"
-                                        href="/cart.html"
-                                    >Add to Cart</a>
+                                        to={"/cart/p/" + currentProduct.id + "/u/" + currentUser}
+                                        onClick={this.addToCart()}
+                                    >Add to Cart</Link>
                                 </div>
                             </div>
                         </div>
