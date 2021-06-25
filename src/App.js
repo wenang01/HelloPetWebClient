@@ -22,7 +22,7 @@ function App() {
         {/* <Route exact path={["/detailproduct", "/detailproduct/:id"]} component={Detailproduct} /> */}
         <Route path="/register" component={Register} />
         {/* <Route path="/cart/p/:prodId/u/:userId" component={Cart} /> */}
-        <Route path="/cart/p/:prodId/u/:userId" component={Cart} />
+        <Route path="/cart/u/:userId" component={Cart} />
       </Switch>
       <Footer />
     </div>

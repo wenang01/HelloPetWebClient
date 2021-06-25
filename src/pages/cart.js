@@ -9,24 +9,31 @@ export class Cart extends Component {
 
     constructor(props) {
         super(props)
+
+        this.getCarts = this.getCarts.bind(this)
+        this.getProducts = this.getProducts.bind(this)
+
         this.state = {
-            userid: undefined,
-            productid: undefined,
+            userid: this.props.match.params.userId,
+            productid: this.props.match.params.prodId,
             qty: null,
             currentCart: {
                 id: null,
                 userid: null,
                 productid: null,
-                qty: null
+                categoryId:null,
+                qty: null,
             },
+            currentCarts: [],
             message: [],
             user: undefined,
-            product: undefined
+            product: [],
+            currentUser: null,
         }
     }
 
     componentDidMount() {
-
+        // this.addToCart()
         const user = AuthService.getCurrentUser();
         if (user) {
             this.setState({
@@ -34,19 +41,90 @@ export class Cart extends Component {
             });
             console.log(user.id)
         }
+
+        this.getCarts(user.id)
+    }
+
+    getProducts() {
+        Produts.getProducts().then((response) => {
+            this.setState({
+                product: response.data
+            })
+            console.log(response.data)
+        })
     }
 
     getCarts(userId) {
         Carts.getAll(userId).then((response) => {
             this.setState({
-                currentCart: response.data
+                currentCarts: response.data,
+                currentCart: {
+                    id: response.data.id,
+                    userid: response.data.user.id,
+                    productid: response.data.product.id,
+                    qty: response.data.qty
+                }
             })
+            console.log(response.data)
         }).catch((e) => {
             console.log(e)
         })
     }
 
+    addToCart() {
+        var data = {
+            user: {
+                id: this.state.currentUser
+            },
+            product: {
+                id: this.props.match.params.prodId
+            },
+            qty: this.state.qty + 1
+        }
+        Carts.add(data).then((response) => {
+            alert("Product Added to cart !")
+            this.props.history.push("/carts/u/" + this.state.currentUser)
+            console.log("add cart : " + response.data)
+            this.setState({
+                currentProduct: { id: response.data.product.id },
+                qty: response.data.qty,
+            })
+        })
+    }
+
+
     render() {
+        const { currentCarts, currentCart } = this.state
+        console.log(currentCart)
+        const display = Object.keys(currentCarts).map((d, key) => {
+            return (
+                <>
+                    {/* <li key={key}>{currentCarts.product.productName}</li> */}
+                    <tr>
+                        <td style={{ width: '25%' }}>
+                            <img
+                                src={"http://localhost:3030/product/photos/" + currentCarts.product.productImage}
+                                alt=""
+                                class="cart-image"
+                            />
+                        </td>
+                        <td style={{ width: '35%' }}>
+                            <div class="product-title">{currentCarts.product.productName}</div>
+                            <div class="product-subtitle">{currentCarts.product.categories.categoryName}</div>
+                        </td>
+                        <td style={{ width: '35%' }}>
+                            <div class="product-title">{currentCarts.product.price}</div>
+                            <div class="product-subtitle">IDR</div>
+                        </td>
+                        <td style={{ width: '20%' }}>
+                            <Link href="#" class="btn btn-remove-cart">
+                                Remove
+                            </Link>
+                        </td>
+                    </tr>
+                </>
+            )
+        })
         return (
             <div class="page-content page-cart">
                 <section
@@ -86,72 +164,7 @@ export class Cart extends Component {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td style={{ width: '25%' }}>
-                                                <img
-                                                    src="/images/product-cart-1.jpg"
-                                                    alt=""
-                                                    class="cart-image"
-                                                />
-                                            </td>
-                                            <td style={{ width: '35%' }}>
-                                                <div class="product-title">Sofa Ternyaman</div>
-                                                <div class="product-subtitle">by Andi Sukka</div>
-                                            </td>
-                                            <td style={{ width: '35%' }}>
-                                                <div class="product-title">$29,112</div>
-                                                <div class="product-subtitle">USD</div>
-                                            </td>
-                                            <td style={{ width: '20%' }}>
-                                                <Link href="#" class="btn btn-remove-cart">
-                                                    Remove
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ width: '25%' }}>
-                                                <img
-                                                    src="/images/product-cart-2.jpg"
-                                                    alt=""
-                                                    class="cart-image"
-                                                />
-                                            </td>
-                                            <td style={{ width: '25%' }}>
-                                                <div class="product-title">Sneaker</div>
-                                                <div class="product-subtitle">by BuildWith Angga</div>
-                                            </td>
-                                            <td style={{ width: '25%' }}>
-                                                <div class="product-title">$80,309</div>
-                                                <div class="product-subtitle">USD</div>
-                                            </td>
-                                            <td style={{ width: '25%' }}>
-                                                <Link href="#" class="btn btn-remove-cart">
-                                                    Remove
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td style={{ width: '25%' }}>
-                                                <img
-                                                    src="/images/product-cart-3.jpg"
-                                                    alt=""
-                                                    class="cart-image"
-                                                />
-                                            </td>
-                                            <td style={{ width: '25%' }}>
-                                                <div class="product-title">Coffee Holder</div>
-                                                <div class="product-subtitle">by Addictex</div>
-                                            </td>
-                                            <td style={{ width: '25%' }}>
-                                                <div class="product-title">$13,492</div>
-                                                <div class="product-subtitle">USD</div>
-                                            </td>
-                                            <td style={{ width: '25%' }}>
-                                                <Link href="#" class="btn btn-remove-cart">
-                                                    Remove
-                                                </Link>
-                                            </td>
-                                        </tr>
+                                        {display}
                                     </tbody>
                                 </table>
                             </div>

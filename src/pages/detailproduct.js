@@ -12,7 +12,7 @@ export default class Detailproduct extends Component {
         // this.getDataProducts = this.getDataProducts.bind(this)
         // this.getDataCategories = this.retrieveDataCategories.bind(this)
         // this.getGallery = this.getGallery.bind(this);
-        this.addToCart = this.addToCart.bind(this)
+        // this.addToCart = this.addToCart.bind(this)
 
         this.state = {
             currentUser: undefined,
@@ -174,7 +174,7 @@ export default class Detailproduct extends Component {
                                 <div className="col-lg-2" data-aos="zoom-in">
                                     <Link
                                         className="btn btn-success nav-link px-4 text-white btn-block mb-3"
-                                        to={"/cart/p/" + currentProduct.id + "/u/" + currentUser}
+                                        to={"/cart/u/" + currentUser}
                                         onClick={this.addToCart()}
                                     >Add to Cart</Link>
                                 </div>
