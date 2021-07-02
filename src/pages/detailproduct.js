@@ -3,7 +3,9 @@ import { Link, withRouter } from "react-router-dom"
 import Product from "../services/products.service"
 import Categories from "../services/category.service"
 import AuthService from "../services/auth.service"
+import authHeader from "../services/auth-header"
 import Cart from "../services/cart.service"
+import axios from "axios"
 
 export default class Detailproduct extends Component {
 
@@ -75,27 +77,62 @@ export default class Detailproduct extends Component {
             });
     }
 
-    addToCart() {
-        var data = {
-            user: {
-                id: this.state.currentUser
-            },
-            product: {
-                id: this.state.currentProduct.id
-            },
-            qty: this.state.qty + 1
-        }
-        Cart.add(data).then((response) => {
-            alert("Product Added to cart !")
-            this.props.history.push("/carts/")
-            console.log(response.data)
-            this.setState({
-                currentUser: response.data.user.id,
-                currentProduct: { id: response.data.product.id },
-                qty: response.data.qty,
-            })
-        })
-    }
+    // addToCart() {
+    //     var data = {
+    //         user: {
+    //             id: this.state.currentUser
+    //         },
+    //         product: {
+    //             id: this.state.currentProduct.id
+    //         },
+    //         qty: this.state.qty + 1
+    //     }
+    //     Cart.add(data).then((response) => {
+    //         alert("Product Added to cart !")
+    //         this.props.history.push("/carts/")
+    //         console.log(response.data)
+    //         this.setState({
+    //             currentUser: response.data.user.id,
+    //             currentProduct: { id: response.data.product.id },
+    //             qty: response.data.qty,
+    //         })
+    //     })
+    // }
+
+    addToCart = () => {
+        const form_data = new FormData();
+        form_data.append("user", this.state.currentUser);
+        form_data.append("product", this.state.currentProduct.id);
+        form_data.append("qty", this.state.qty + 1);
+        const END_POINT = "carts/";
+        axios
+            .post(
+                "http://localhost:3030/" + END_POINT,
+                form_data,
+                { headers: authHeader() },
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            )
+            .then(
+                (response) => {
+                    alert("Add Carts Successfully!");
+                    window.location.replace("/cart/u/" + this.state.currentUser);
+                    console.log(response.data);
+                    this.setState({
+                        currentUser: response.data.user.id,
+                        currentProduct: { id: response.data.product.id },
+                        qty: response.data.qty,
+                    })
+                },
+                (error) => {
+                    console.log(error);
+                    // alert("Failed..!");
+                }
+            );
+    };
 
     render() {
         const { currentProduct, listGalleries, currentUser } = this.state
@@ -175,7 +212,7 @@ export default class Detailproduct extends Component {
                                     <Link
                                         className="btn btn-success nav-link px-4 text-white btn-block mb-3"
                                         to={"/cart/u/" + currentUser}
-                                        onClick={this.addToCart()}
+                                        onClick={this.addToCart}
                                     >Add to Cart</Link>
                                 </div>
                             </div>

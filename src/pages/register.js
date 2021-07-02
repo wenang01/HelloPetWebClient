@@ -3,7 +3,8 @@ import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
 import CheckButton from "react-validation/build/button";
 import { isEmail } from "validator";
-
+import { CometChat } from "@cometchat-pro/chat";
+import { COMETCHAT_CONSTANTS } from '../const';
 import AuthService from '../services/auth.service'
 
 const required = value => {
@@ -102,6 +103,37 @@ export class Register extends Component {
 
     handleRegister(e) {
         e.preventDefault();
+
+        var appID = COMETCHAT_CONSTANTS.APP_ID;
+        var region = COMETCHAT_CONSTANTS.REGION;
+
+        var appSetting = new CometChat.AppSettingsBuilder().subscribePresenceForAllUsers().setRegion(region).build();
+        CometChat.init(appID, appSetting).then(() => {
+
+            if (CometChat.setSource) {
+                CometChat.setSource("ui-kit", "web", "reactjs");
+            }
+            let authKey = COMETCHAT_CONSTANTS.AUTH_KEY;
+            var uid = this.state.username;
+            var name = this.state.name;
+
+            var user = new CometChat.User(uid);
+
+            user.setName(name);
+
+            CometChat.createUser(user, authKey).then(
+                user => {
+                    console.log("user created", user);
+                }, error => {
+                    console.log("error", error);
+                }
+            )
+        },
+            error => {
+                console.log("Initialization failed with error:", error);
+                // Check the reason for error and take appropriate action.
+            }
+        );
 
         this.setState({
             message: "",

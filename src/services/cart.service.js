@@ -14,8 +14,8 @@ class CartsService {
         return http.post("/carts/", data, { headers: authHeader() });
     }
 
-    update(id, data) {
-        return http.put(`/carts/${id}`, data, {
+    update(userId, id, data) {
+        return http.put(`/carts/u/${userId}/c/${id}`, data, {
             headers: authHeader(),
         });
     }

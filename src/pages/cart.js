@@ -2,8 +2,10 @@ import React, { Component } from 'react'
 import { Link } from "react-router-dom"
 import Produts from "../services/products.service"
 import AuthService from "../services/auth.service"
-import Carts from "../services/cart.service"
+import CartService from "../services/cart.service"
 
+import axios from "axios";
+import authHeader from "../services/auth-header";
 
 export class Cart extends Component {
 
@@ -12,28 +14,28 @@ export class Cart extends Component {
 
         this.getCarts = this.getCarts.bind(this)
         this.getProducts = this.getProducts.bind(this)
+        this.deleteCarts = this.deleteCarts.bind(this)
+        this.tambahQty = this.tambahQty.bind(this)
 
         this.state = {
-            userid: this.props.match.params.userId,
-            productid: this.props.match.params.prodId,
             qty: null,
-            currentCart: {
-                id: null,
-                userid: null,
-                productid: null,
-                categoryId:null,
-                qty: null,
-            },
-            currentCarts: [],
+            currentUser: undefined,
+            currentCart: [],
+            currentProduct: [],
             message: [],
-            user: undefined,
             product: [],
-            currentUser: null,
+            currentCarts: {
+                id: null,
+                users: "",
+                products: "",
+                quantity: "",
+            },
+            cartTempId: null
         }
     }
 
     componentDidMount() {
-        // this.addToCart()
+
         const user = AuthService.getCurrentUser();
         if (user) {
             this.setState({
@@ -51,80 +53,119 @@ export class Cart extends Component {
                 product: response.data
             })
             console.log(response.data)
+        }).catch((e) => {
+            console.log(e)
         })
     }
 
     getCarts(userId) {
-        Carts.getAll(userId).then((response) => {
+        CartService.getAll(userId).then((response) => {
             this.setState({
-                currentCarts: response.data,
-                currentCart: {
-                    id: response.data.id,
-                    userid: response.data.user.id,
-                    productid: response.data.product.id,
-                    qty: response.data.qty
-                }
+                currentCart: response.data,
             })
+
             console.log(response.data)
         }).catch((e) => {
             console.log(e)
         })
     }
 
-    addToCart() {
-        var data = {
-            user: {
-                id: this.state.currentUser
+    onChangeQty(e) {
+        const quantity = e.target.value;
+
+        this.setState((prevState) => ({
+            currentCarts: {
+                ...prevState.currentCarts,
+                quantity: quantity,
             },
-            product: {
-                id: this.props.match.params.prodId
+        }));
+    }
+
+    onChangeProduct(e) {
+        const products = e.target.value;
+
+        this.setState((prevState) => ({
+            currentCarts: {
+                ...prevState.currentCarts,
+                products: products,
             },
-            qty: this.state.qty + 1
-        }
-        Carts.add(data).then((response) => {
-            alert("Product Added to cart !")
-            this.props.history.push("/carts/u/" + this.state.currentUser)
-            console.log("add cart : " + response.data)
-            this.setState({
-                currentProduct: { id: response.data.product.id },
-                qty: response.data.qty,
+        }));
+    }
+
+    onChangeUser(e) {
+        const users = e.target.value;
+
+        this.setState((prevState) => ({
+            currentCarts: {
+                ...prevState.currentCarts,
+                users: users,
+            },
+        }));
+    }
+
+    onChangeId(e) {
+        const id = e.target.value
+        this.setState((prevState) => ({
+            currentCarts: {
+                ...prevState.currentCarts,
+                id: id,
+            },
+        }));
+    }
+
+    tambahQty = (userId, id) => {
+        const form_data = new FormData();
+        // const idCart = id; 
+        form_data.append("id", this.state.currentCart.id);
+        form_data.append("users", this.state.currentCart.user);
+        form_data.append("products", this.state.currentCart.product);
+        form_data.append("qty", this.state.currentCart.qty + 1);
+        // const END_POINT = "carts/u/" + userId + "/c/" + id;
+        // axios
+        //     .put(
+        //         "http://localhost:3030/" + END_POINT,
+        //         form_data,
+        //         { headers: authHeader() },
+        //         {
+        //             headers: {
+        //                 "Content-Type": "multipart/form-data",
+        //             },
+        //         }
+        //     )
+        CartService.update(userId, id, form_data)
+            .then(
+                (response) => {
+                    window.location.reload();
+                    console.log(response.data);
+                },
+                (error) => {
+                    console.log(error);
+                    alert("Failed..!");
+                }
+            );
+    };
+
+
+    deleteCarts(id) {
+        CartService.delete(id)
+            .then((response) => {
+                alert("Deleted Carts Successfully!");
+                // let updateCarts = this.state.currentCart.filter((i) => i.id !== id);
+                // this.setState({ currentCart: updateCarts });
+                console.log(response.data);
+                this.props.history.push("/carts/u/" + this.state.currentUser);
             })
-        })
+            .catch((e) => {
+                alert("Delete Failed!");
+                console.log(e);
+            });
     }
 
 
     render() {
-        const { currentCarts, currentCart } = this.state
+        const { currentUser, currentCart } = this.state
         console.log(currentCart)
-        const display = Object.keys(currentCarts).map((d, key) => {
-            return (
-                <>
-                    {/* <li key={key}>{currentCarts.product.productName}</li> */}
-                    <tr>
-                        <td style={{ width: '25%' }}>
-                            <img
-                                src={"http://localhost:3030/product/photos/" + currentCarts.product.productImage}
-                                alt=""
-                                class="cart-image"
-                            />
-                        </td>
-                        <td style={{ width: '35%' }}>
-                            <div class="product-title">{currentCarts.product.productName}</div>
-                            <div class="product-subtitle">{currentCarts.product.categories.categoryName}</div>
-                        </td>
-                        <td style={{ width: '35%' }}>
-                            <div class="product-title">{currentCarts.product.price}</div>
-                            <div class="product-subtitle">IDR</div>
-                        </td>
-                        <td style={{ width: '20%' }}>
-                            <Link href="#" class="btn btn-remove-cart">
-                                Remove
-                            </Link>
-                        </td>
-                    </tr>
-                </>
-            )
-        })
+
         return (
             <div class="page-content page-cart">
                 <section
@@ -157,14 +198,51 @@ export class Cart extends Component {
                                 >
                                     <thead>
                                         <tr>
-                                            <th scope="col">Image</th>
-                                            <th scope="col">Name &amp; Seller</th>
-                                            <th scope="col">Price</th>
-                                            <th scope="col">Menu</th>
+                                            <th scope="col" class="text-center">Image</th>
+                                            <th scope="col" class="text-center">Name &amp; Seller</th>
+                                            <th scope="col" class="text-center">Price</th>
+                                            <th colspan="3" class="text-center" scope="col">Quantity</th>
+                                            <th scope="col" class="text-center">Menu</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {display}
+                                        {currentCart && currentCart.map((cc) => (
+                                            <tr>
+                                                <td style={{ width: '25%' }} class="text-center">
+                                                    <img
+                                                        src={"http://localhost:8080/products/photo/" + cc.product.productImage}
+                                                        alt=""
+                                                        class="cart-image"
+                                                    />
+                                                </td>
+                                                <td style={{ width: '35%' }} class="text-center">
+                                                    <div class="product-title">{cc.product.productName}</div>
+                                                    {/* <div class="product-subtitle">{currentCarts.products.categories.categoryName}</div> */}
+                                                </td>
+                                                <td style={{ width: '35%' }} class="text-center">
+                                                    <div class="product-title">{cc.product.price}</div>
+                                                    <div class="product-subtitle">IDR</div>
+                                                </td>
+                                                <td style={{ width: '20%' }} class="text-center">
+                                                    <button onClick={() => this.deleteCarts(cc.id)} class="btn btn-light">
+                                                        <img src="/assets/images/minus.png" alt="" style={{ width: '25px', height: '25px' }}></img>
+                                                    </button>
+                                                </td>
+                                                <td style={{ width: '20%' }} class="text-center">
+                                                    {/* <input type="text" value={cc.qty} onChange={this.onChangeQty}>{cc.qty}</input> */}
+                                                </td>
+                                                <td style={{ width: '20%' }} class="text-center">
+                                                    <button onClick={() => this.tambahQty(cc.users.id, cc.id)} class="btn btn-light">
+                                                        <img src="/assets/images/plus.png" alt="" style={{ width: '25px', height: '25px' }}></img>
+                                                    </button>
+                                                </td>
+                                                <td style={{ width: '20%' }} class="text-center">
+                                                    <button onClick={() => this.deleteCarts(cc.id)} class="btn btn-remove-cart">
+                                                        Remove
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -214,6 +292,8 @@ export class Cart extends Component {
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
+
+                                    Umi JuaraCoding Batch 8, [27.06.21 01:57]
                                     <label for="city">City</label>
                                     <select name="city" id="city" class="form-control">
                                         <option value="Bandung">Bandung</option>
@@ -284,16 +364,17 @@ export class Cart extends Component {
                             </div>
                             <div class="col-8 col-md-3">
                                 <Link
-                                    href="/success.html"
+                                    to={"/transaction/u/" + currentUser}
                                     class="btn btn-success mt-4 px-4 btn-block"
                                 >
                                     Checkout Now
                                 </Link>
                             </div>
+
                         </div>
                     </div>
                 </section>
-            </div>
+            </div >
         )
     }
 }
